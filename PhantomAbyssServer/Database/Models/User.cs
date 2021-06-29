@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace PhantomAbyssServer.Database.Models
 {
@@ -11,8 +12,10 @@ namespace PhantomAbyssServer.Database.Models
     public class User
     {
         [Key]
+        [JsonProperty("userId")]
         public uint Id { get; set; }
         
+        [JsonProperty("currentUsername")]
         public string Name { get; set; }
         public string SteamId { get; set; }
         public string SharerId { get; set; }
