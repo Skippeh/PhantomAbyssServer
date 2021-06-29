@@ -53,13 +53,12 @@ namespace PhantomAbyssServer.Controllers
                     dungeonKeys = user.Currency.DungeonKeys.OrderBy(d => d.Stage).Select(d => d.NumKeys),
                     user.Currency.Essence
                 },
-                currentUsername = user.Name,
+                user.Name,
                 user.Health,
-                lockedCurrencyAndCompletedRoutes = new object[0],
+                lockedCurrencyAndCompletedRoutes = new object[0], // todo: fill placeholder
+                victoryRoutes = new object[0], // todo: fill placeholder
                 user.SharerId,
                 userId = user.Id,
-                //user.VictoryRoutes
-                victoryRoutes = new object[0]
             };
         }
     }
