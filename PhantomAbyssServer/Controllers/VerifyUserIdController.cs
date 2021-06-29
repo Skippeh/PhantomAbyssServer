@@ -22,7 +22,7 @@ namespace PhantomAbyssServer.Controllers
         [HttpPost]
         public async Task<IActionResult> Index([FromBody] VerifyUserIdRequest request)
         {
-            if (request.UserId != null)
+            if (request.UserId != null && request.UserId != 0)
             {
                 User user = await userService.GetUserFromId(request.UserId.Value);
 
