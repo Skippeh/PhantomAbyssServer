@@ -12,6 +12,7 @@ namespace PhantomAbyssServer.Database.Models
     public class User
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [JsonProperty("userId")]
         public uint Id { get; set; }
         

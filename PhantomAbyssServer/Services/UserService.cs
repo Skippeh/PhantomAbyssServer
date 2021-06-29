@@ -43,13 +43,17 @@ namespace PhantomAbyssServer.Services
                 .FirstOrDefaultAsync(user => user.SteamId == steamId);
         }
 
-        public async Task<User> CreateUser(string steamId, string name)
+        public async Task<User> CreateUser(string steamId, string name, uint? userId = null)
         {
-            if (await dbContext.Users.AnyAsync(u => u.SteamId == steamId))
+            if (userId == null && await dbContext.Users.AnyAsync(u => u.SteamId == steamId))
+                throw new UserAlreadyExistsException();
+            
+            if (userId != null && await dbContext.Users.AnyAsync(u => u.Id == userId))
                 throw new UserAlreadyExistsException();
 
             var user = new User
             {
+                Id = userId ?? GetUniqueUserId(),
                 Name = name,
                 SteamId = steamId,
                 SharerId = await GetUniqueSharerId(),
@@ -86,6 +90,22 @@ namespace PhantomAbyssServer.Services
                 if (await dbContext.Users.AllAsync(e => e.SharerId != sharerId))
                     return sharerId;
             }
+        }
+
+        private uint GetUniqueUserId()
+        {
+            // This is not very efficient with many users i bet, but the purpose of this server doesn't really have more than a few users at most in a normal scenario.
+            // The reason we're not automatically generating an id is because it's necessary to be able to create an account with a custom id so that users can use their "live" save file without
+            // editing its user id.
+            uint maxId = 0;
+            
+            foreach (var user in dbContext.Users)
+            {
+                if (user.Id > maxId)
+                    maxId = user.Id;
+            }
+
+            return maxId + 1;
         }
 
         public async Task SaveChanges()

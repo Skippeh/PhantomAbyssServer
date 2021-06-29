@@ -2,6 +2,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using PhantomAbyssServer.Database.Models;
 using PhantomAbyssServer.Models.Requests;
 using PhantomAbyssServer.Services;
@@ -13,21 +14,31 @@ namespace PhantomAbyssServer.Controllers
     public class VerifyUserIdController : ControllerBase
     {
         private readonly UserService userService;
+        private readonly IConfigurationSection securityConfig;
 
-        public VerifyUserIdController(UserService userService)
+        public VerifyUserIdController(UserService userService, IConfiguration configuration)
         {
             this.userService = userService;
+            this.securityConfig = configuration.GetSection("Security");
         }
         
         [HttpPost]
         public async Task<IActionResult> Index([FromBody] VerifyUserIdRequest request)
         {
+            bool allowAnyUserId = securityConfig.GetValue("AllowAnyUserId", defaultValue: true);
+            
             if (request.UserId != null && request.UserId != 0)
             {
                 User user = await userService.GetUserFromId(request.UserId.Value);
 
-                if (user == null || user.SteamId != request.SteamId)
+                if (user == null && allowAnyUserId)
+                {
+                    user = await userService.CreateUser(request.SteamId, request.CurrentUsername, request.UserId);
+                }
+                else if (user == null || user.SteamId != request.SteamId)
+                {
                     return NotFound("There is no matching account with this steam and user id.");
+                }
 
                 return Ok(ConvertUserToResponseObject(user));
             }
