@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PhantomAbyssServer.Models.Requests
 {
-    public class WakeUpRequest
+    public class PurchaseRouteRequest : SpendCurrencyRequest
     {
         [Required]
-        public int ClientVersion { get; set; }
+        public uint RouteId { get; set; }
     }
 }

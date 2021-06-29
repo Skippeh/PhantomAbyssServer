@@ -87,5 +87,10 @@ namespace PhantomAbyssServer.Services
                     return sharerId;
             }
         }
+
+        public async Task SaveChanges()
+        {
+            await dbContext.SaveChangesAsync();
+        }
     }
 }

@@ -35,13 +35,7 @@ namespace PhantomAbyssServer.Controllers
                         Rewards = globalValuesService.GetRelicConversionRewards().ToList()
                     }
                 },
-                MaintenanceInfo = new MaintenanceInfo
-                {
-                    Mode = 1,
-                    ServerVersion = maintenanceService.GetServerVersion(),
-                    MaintenanceTimeUtc = new DateTime(0),
-                    NewGamesLockedOut = false
-                }
+                MaintenanceInfo = maintenanceService.GetMaintenanceInfo()
             };
 
             return Ok(response);
