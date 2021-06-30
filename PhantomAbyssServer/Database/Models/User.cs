@@ -21,6 +21,7 @@ namespace PhantomAbyssServer.Database.Models
         public string SteamId { get; set; }
         public string SharerId { get; set; }
         
+        [JsonIgnore]
         public uint CurrencyId { get; set; }
         
         [ForeignKey(nameof(CurrencyId))]
@@ -33,6 +34,9 @@ namespace PhantomAbyssServer.Database.Models
         
         // todo: create model for routes and dungeons
         [NotMapped]
-        public List<object> VictoryRoutes { get; set; }
+        public List<object> VictoryRoutes { get; set; } = new();
+
+        [NotMapped]
+        public List<object> LockedCurrencyAndCompletedRoutes = new();
     }
 }

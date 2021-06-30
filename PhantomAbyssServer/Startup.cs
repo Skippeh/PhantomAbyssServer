@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using PhantomAbyssServer.Database;
+using PhantomAbyssServer.JsonConverters;
 using PhantomAbyssServer.Middleware;
 using PhantomAbyssServer.Services;
 
@@ -31,7 +32,12 @@ namespace PhantomAbyssServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                var serializerOptions = options.SerializerSettings;
+                serializerOptions.Converters.Add(new UserCurrencyConverter());
+            });
+            
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "PhantomAbyssServer", Version = "v1"}); });
 
             services.AddSingleton<MaintenanceService>();

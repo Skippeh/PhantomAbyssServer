@@ -40,7 +40,7 @@ namespace PhantomAbyssServer.Controllers
                     return NotFound("There is no matching account with this steam and user id.");
                 }
 
-                return Ok(ConvertUserToResponseObject(user));
+                return Ok(user);
             }
             else
             {
@@ -51,26 +51,8 @@ namespace PhantomAbyssServer.Controllers
                     user = await userService.CreateUser(request.SteamId, request.CurrentUsername);
                 }
 
-                return Ok(ConvertUserToResponseObject(user));
+                return Ok(user);
             }
-        }
-
-        private object ConvertUserToResponseObject(User user)
-        {
-            return new
-            {
-                currency = new
-                {
-                    dungeonKeys = user.Currency.DungeonKeys.OrderBy(d => d.Stage).Select(d => d.NumKeys),
-                    user.Currency.Essence
-                },
-                user.Name,
-                user.Health,
-                lockedCurrencyAndCompletedRoutes = new object[0], // todo: fill placeholder
-                victoryRoutes = new object[0], // todo: fill placeholder
-                user.SharerId,
-                userId = user.Id,
-            };
         }
     }
 }
