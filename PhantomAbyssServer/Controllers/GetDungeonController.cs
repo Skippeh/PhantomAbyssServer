@@ -20,15 +20,21 @@ namespace PhantomAbyssServer.Controllers
         [HttpPost]
         public IActionResult Index([FromBody] GetDungeonRequest request)
         {
+            // todo: get 'real' ids.
+            uint dungeonId = request.DungeonId > 0 ? request.DungeonId : 1;
+            uint routeId = request.RouteId > 0 ? request.RouteId : 1;
+            
             return Ok(new
             {
-                dungeonFloorNumber = 2,
+                dungeonFloorNumber = request.DungeonFloorNumber,
                 dungeonFloorTotalCount = 0,
                 dungeonFloorType = 0,
-                dungeonId = 1,
+                dungeonId = dungeonId,
+                routeId = routeId,
+                routeStage = request.RouteStage,
                 dungeonLayoutType = 0,
                 dungeonSeed = 1000,
-                dungeonSettingsIndex = 0,
+                dungeonSettingsIndex = request.DungeonSettingsIndex,
                 dungeonVersion = maintenanceService.GetServerVersion(),
                 ghostRuns = new object[0],
                 health = new UserHealth
@@ -42,8 +48,6 @@ namespace PhantomAbyssServer.Controllers
                 persistentChanges = (object) null,
                 precalculatedRooms = (object) null,
                 relicId = (string) null, // null makes the game pick a relic
-                routeId = 1,
-                routeStage = 0,
                 serverStatus = maintenanceService.GetMaintenanceInfo(),
                 totalDungeonAttemptsAllFloors = 0,
                 userId = request.UserId
