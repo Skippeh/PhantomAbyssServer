@@ -43,7 +43,9 @@ namespace PhantomAbyssServer
             services.AddSingleton<MaintenanceService>();
             services.AddSingleton<GlobalValuesService>();
             services.AddSingleton<RandomGeneratorService>();
+            services.AddSingleton<CryptoService>();
             services.AddScoped<UserService>();
+            services.AddScoped<SavedRunsService>();
 
             services.AddDbContext<PAContext>(options =>
             {
