@@ -24,5 +24,7 @@ namespace PhantomAbyssServer.Database.Models
         public string DataHash { get; set; }
 
         public bool RunSuccessful { get; set; }
+        
+        public int ServerVersion { get; set; }
     }
 }

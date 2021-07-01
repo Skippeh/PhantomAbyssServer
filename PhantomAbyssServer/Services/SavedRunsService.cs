@@ -13,12 +13,14 @@ namespace PhantomAbyssServer.Services
     public class SavedRunsService
     {
         private readonly CryptoService cryptoService;
+        private readonly MaintenanceService maintenanceService;
         private readonly PAContext dbContext;
         private readonly ILogger<SavedRunsService> logger;
 
-        public SavedRunsService(CryptoService cryptoService, PAContext dbContext, ILogger<SavedRunsService> logger)
+        public SavedRunsService(CryptoService cryptoService, MaintenanceService maintenanceService, PAContext dbContext, ILogger<SavedRunsService> logger)
         {
             this.cryptoService = cryptoService;
+            this.maintenanceService = maintenanceService;
             this.dbContext = dbContext;
             this.logger = logger;
 
@@ -58,7 +60,8 @@ namespace PhantomAbyssServer.Services
                 DungeonId = dungeonId,
                 RouteId = routeId,
                 DungeonFloorNumber = dungeonFloorNumber,
-                RunSuccessful = runSuccessful
+                RunSuccessful = runSuccessful,
+                ServerVersion = maintenanceService.GetServerVersion()
             };
 
             dbContext.SavedRuns.Add(savedRun);
@@ -85,9 +88,9 @@ namespace PhantomAbyssServer.Services
             return File.ReadAllTextAsync(filePath, Encoding.ASCII);
         }
 
-        private static string GetDirectoryPath(uint dungeonId, uint routeId, uint dungeonFloor)
+        private string GetDirectoryPath(uint dungeonId, uint routeId, uint dungeonFloor)
         {
-            string directoryPath = $"RunData/{dungeonId}-{routeId}-{dungeonFloor}/";
+            string directoryPath = $"RunData/v{maintenanceService.GetServerVersion()}-{dungeonId}-{routeId}-{dungeonFloor}/";
             return directoryPath;
         }
     }
