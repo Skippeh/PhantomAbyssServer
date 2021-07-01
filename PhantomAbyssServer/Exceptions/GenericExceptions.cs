@@ -4,11 +4,18 @@ namespace PhantomAbyssServer.Exceptions
 {
     public class SaveFailedException : Exception
     {
-        public SaveFailedException() : this(null)
+        public SaveFailedException() : this(null, null)
         {
         }
 
-        public SaveFailedException(string message) : base(message)
+        public SaveFailedException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+    }
+
+    public class DataExistsAlready : Exception
+    {
+        public DataExistsAlready(string message) : base(message)
         {
         }
     }

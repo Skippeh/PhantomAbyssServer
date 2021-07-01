@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +29,7 @@ namespace PhantomAbyssServer.Services
             Directory.CreateDirectory("RunData");
         }
         
-        /// <exception cref="RunDataExistsAlready">Thrown if there is already an existing run with identical run data.</exception>
+        /// <exception cref="DataExistsAlready">Thrown if there is already an existing run with identical run data.</exception>
         /// <exception cref="SaveFailedException">Thrown if saving the run data to disk fails.</exception>
         public async Task SaveRunData(User runner, uint dungeonId, uint routeId, uint dungeonFloorNumber, bool runSuccessful, string runData)
         {
@@ -35,7 +37,7 @@ namespace PhantomAbyssServer.Services
 
             if ((await GetSavedRunFromHash(hash)) != null)
             {
-                throw new RunDataExistsAlready();
+                throw new DataExistsAlready("There is already a run submitted with identical run data");
             }
             
             var directoryPath = GetDirectoryPath(dungeonId, routeId, dungeonFloorNumber);
@@ -50,7 +52,7 @@ namespace PhantomAbyssServer.Services
             catch (IOException ex)
             {
                 logger.LogCritical("Could not save run data to disk: {ExceptionMessage}", ex.Message);
-                throw new SaveFailedException("Could not save run data to disk");
+                throw new SaveFailedException("Could not save run data to disk", ex);
             }
 
             SavedRun savedRun = new()
@@ -92,6 +94,11 @@ namespace PhantomAbyssServer.Services
         {
             string directoryPath = $"RunData/v{maintenanceService.GetServerVersion()}-{dungeonId}-{routeId}-{dungeonFloor}/";
             return directoryPath;
+        }
+
+        public async Task<ICollection<SavedRun>> GetSavedRuns(uint dungeonId, uint routeId, uint dungeonFloorNumber)
+        {
+            return await dbContext.SavedRuns.Include(e => e.User).Where(run => run.DungeonId == dungeonId && run.RouteId == routeId && run.DungeonFloorNumber == dungeonFloorNumber).ToListAsync();
         }
     }
 }

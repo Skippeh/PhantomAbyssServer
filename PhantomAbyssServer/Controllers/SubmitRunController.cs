@@ -29,6 +29,9 @@ namespace PhantomAbyssServer.Controllers
             if (user == null)
                 return NotFound("User not found");
 
+            if (request.DungeonId == 0 || request.RouteId == 0)
+                return BadRequest("Invalid dungeon or route id");
+
             // Save run data if it exists
             if (!string.IsNullOrEmpty(request.RunData?.Trim()))
             {
@@ -41,7 +44,7 @@ namespace PhantomAbyssServer.Controllers
                 {
                     return StatusCode((int) HttpStatusCode.InternalServerError, "Could not save run data");
                 }
-                catch (RunDataExistsAlready ex)
+                catch (DataExistsAlready ex)
                 {
                     return BadRequest(ex.Message);
                 }

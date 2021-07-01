@@ -46,10 +46,10 @@ namespace PhantomAbyssServer.Services
         public async Task<User> CreateUser(string steamId, string name, uint? userId = null)
         {
             if (userId == null && await dbContext.Users.AnyAsync(u => u.SteamId == steamId))
-                throw new UserAlreadyExistsException();
+                throw new UserExistsAlreadyException();
             
             if (userId != null && await dbContext.Users.AnyAsync(u => u.Id == userId))
-                throw new UserAlreadyExistsException();
+                throw new UserExistsAlreadyException();
 
             var user = new User
             {
