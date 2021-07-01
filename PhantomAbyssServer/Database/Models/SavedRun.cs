@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace PhantomAbyssServer.Database.Models
 {
     [Index(nameof(DataHash), IsUnique = true)]
+    [Index(nameof(DungeonId), nameof(RouteId), nameof(DungeonFloorNumber))]
     public class SavedRun
     {
         [Key]
