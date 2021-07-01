@@ -30,6 +30,10 @@ namespace PhantomAbyssServer.Middleware
             string body = await ReadStreamInChunks(requestStream);
             request.Body.Position = 0;
 
+            // Limit body string length to avoid filling the output with potential base64 serialized data
+            if (body.Length > 1000)
+                body = body.Substring(0, 1000) + "...";
+
             builder.AppendLine($"Incoming request: {request.Method} {request.Path}{request.QueryString}");
             builder.AppendLine($"Body:\n{body}");
 
