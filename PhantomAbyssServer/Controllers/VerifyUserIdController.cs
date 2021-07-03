@@ -14,11 +14,13 @@ namespace PhantomAbyssServer.Controllers
     public class VerifyUserIdController : ControllerBase
     {
         private readonly UserService userService;
+        private readonly GlobalValuesService globalValuesService;
         private readonly IConfigurationSection securityConfig;
 
-        public VerifyUserIdController(UserService userService, IConfiguration configuration)
+        public VerifyUserIdController(UserService userService, IConfiguration configuration, GlobalValuesService globalValuesService)
         {
             this.userService = userService;
+            this.globalValuesService = globalValuesService;
             this.securityConfig = configuration.GetSection("Security");
         }
         
@@ -33,6 +35,9 @@ namespace PhantomAbyssServer.Controllers
 
                 if (user == null && allowAnyUserId)
                 {
+                    if (request.UserId > globalValuesService.MaxUserId)
+                        return BadRequest("User id is too high");
+                    
                     user = await userService.CreateUser(request.SteamId, request.CurrentUsername, request.UserId);
                 }
                 else if (user == null || user.SteamId != request.SteamId)

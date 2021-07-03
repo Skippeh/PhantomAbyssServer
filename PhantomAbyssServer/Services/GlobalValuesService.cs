@@ -17,5 +17,7 @@ namespace PhantomAbyssServer.Services
         {
             return configuration.GetSection("GlobalValues").GetSection("RelicConversionRewards").Get<RelicConversionReward[]>();
         }
+
+        public uint MaxUserId => uint.MaxValue - 1001;
     }
 }

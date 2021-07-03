@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -15,11 +16,13 @@ namespace PhantomAbyssServer.Services
         private readonly PAContext dbContext;
         private readonly RandomGeneratorService randomGenerator;
         private readonly IConfigurationSection healthConfig;
+        private GlobalValuesService globalValuesService;
 
-        public UserService(PAContext dbContext, RandomGeneratorService randomGenerator, IConfiguration configuration)
+        public UserService(PAContext dbContext, RandomGeneratorService randomGenerator, IConfiguration configuration, GlobalValuesService globalValuesService)
         {
             this.dbContext = dbContext;
             this.randomGenerator = randomGenerator;
+            this.globalValuesService = globalValuesService;
             healthConfig = configuration.GetSection("Health");
         }
 
@@ -53,7 +56,7 @@ namespace PhantomAbyssServer.Services
 
             var user = new User
             {
-                Id = userId ?? GetUniqueUserId(),
+                Id = userId ?? await GetUniqueUserId(),
                 Name = name,
                 SteamId = steamId,
                 SharerId = await GetUniqueSharerId(),
@@ -92,20 +95,20 @@ namespace PhantomAbyssServer.Services
             }
         }
 
-        private uint GetUniqueUserId()
+        private async Task<uint> GetUniqueUserId()
         {
             // This is not very efficient with many users i bet, but the purpose of this server doesn't really have more than a few users at most in a normal scenario.
             // The reason we're not automatically generating an id is because it's necessary to be able to create an account with a custom id so that users can use their "live" save file without
             // editing its user id.
-            uint maxId = 0;
-            
-            foreach (var user in dbContext.Users)
+            List<User> users = await dbContext.Users.OrderBy(u => u.Id).ToListAsync();
+
+            for (uint i = 0; i < globalValuesService.MaxUserId; ++i)
             {
-                if (user.Id > maxId)
-                    maxId = user.Id;
+                if (users.All(u => u.Id != i))
+                    return i;
             }
 
-            return maxId + 1;
+            throw new InvalidOperationException("The database has reached the max number of users");
         }
 
         public async Task SaveChanges()
