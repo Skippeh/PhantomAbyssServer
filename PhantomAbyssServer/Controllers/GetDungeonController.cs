@@ -43,16 +43,7 @@ namespace PhantomAbyssServer.Controllers
             uint dungeonId = request.DungeonId > 0 ? request.DungeonId : 1;
             uint routeId = request.RouteId > 0 ? request.RouteId : 1;
 
-            ICollection<SavedRun> ghostRuns;
-
-            if (dungeonId != 0 && routeId != 0)
-            {
-                ghostRuns = await savedRuns.GetSavedRuns(dungeonId, routeId, request.DungeonFloorNumber);
-            }
-            else
-            {
-                ghostRuns = new List<SavedRun>();
-            }
+            var ghostRuns = await savedRuns.GetSavedRuns(dungeonId, routeId, request.DungeonFloorNumber);
             
             string relicId = null; // null makes the game pick a relic
             uint floorNumber = request.DungeonFloorNumber;
