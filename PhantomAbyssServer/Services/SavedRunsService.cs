@@ -98,7 +98,15 @@ namespace PhantomAbyssServer.Services
 
         public async Task<ICollection<SavedRun>> GetSavedRuns(uint dungeonId, uint routeId, uint dungeonFloorNumber)
         {
-            return await dbContext.SavedRuns.Include(e => e.User).Where(run => run.DungeonId == dungeonId && run.RouteId == routeId && run.DungeonFloorNumber == dungeonFloorNumber).ToListAsync();
+            int version = maintenanceService.GetServerVersion();
+            return await dbContext.SavedRuns
+                .Include(e => e.User)
+                .Where(run =>
+                    run.ServerVersion == version &&
+                    run.DungeonId == dungeonId &&
+                    run.RouteId == routeId &&
+                    run.DungeonFloorNumber == dungeonFloorNumber
+                ).ToListAsync();
         }
     }
 }
