@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -52,7 +55,7 @@ namespace PhantomAbyssServer.Controllers
             
             if (request.DungeonFloorNumber == 3 && request.Success)
             {
-                // todo: add currency in request to user
+                await userService.GiveCurrency(user, request.Currency.Essence, request.Currency.DungeonKeys);
             }
             
             return Ok();

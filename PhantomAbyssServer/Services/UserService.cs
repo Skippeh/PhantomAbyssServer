@@ -84,6 +84,21 @@ namespace PhantomAbyssServer.Services
             return user;
         }
 
+        public async Task GiveCurrency(User user, uint essence, IEnumerable<DungeonKeyCurrency> dungeonKeys)
+        {
+            user.Currency.Essence += essence;
+                
+            foreach (var currency in dungeonKeys)
+            {
+                var dbCurrency = user.Currency.DungeonKeys.FirstOrDefault(key => key.Stage == currency.Stage);
+
+                if (dbCurrency != null)
+                    dbCurrency.NumKeys += currency.NumKeys;
+            }
+
+            await dbContext.SaveChangesAsync();
+        }
+
         private async Task<string> GetUniqueSharerId()
         {
             while (true)
