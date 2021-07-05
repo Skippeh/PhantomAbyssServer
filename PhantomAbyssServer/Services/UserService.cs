@@ -117,7 +117,7 @@ namespace PhantomAbyssServer.Services
             // editing its user id.
             List<User> users = await dbContext.Users.OrderBy(u => u.Id).ToListAsync();
 
-            for (uint i = 0; i < globalValuesService.MaxUserId; ++i)
+            for (uint i = 1; i < globalValuesService.MaxUserId; ++i)
             {
                 if (users.All(u => u.Id != i))
                     return i;
