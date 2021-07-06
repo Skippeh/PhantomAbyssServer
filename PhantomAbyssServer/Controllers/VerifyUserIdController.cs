@@ -36,7 +36,7 @@ namespace PhantomAbyssServer.Controllers
                 if (user == null && allowAnyUserId)
                 {
                     if (request.UserId > globalValuesService.MaxUserId)
-                        return BadRequest("User id is too high");
+                        return BadRequest("User id is too big");
                     
                     user = await userService.CreateUser(request.SteamId, request.CurrentUsername, request.UserId);
                 }
@@ -44,6 +44,8 @@ namespace PhantomAbyssServer.Controllers
                 {
                     return NotFound("There is no matching account with this steam and user id.");
                 }
+
+                await userService.ResetUserState(user);
 
                 return Ok(user);
             }
@@ -55,6 +57,8 @@ namespace PhantomAbyssServer.Controllers
                 {
                     user = await userService.CreateUser(request.SteamId, request.CurrentUsername);
                 }
+                
+                await userService.ResetUserState(user);
 
                 return Ok(user);
             }

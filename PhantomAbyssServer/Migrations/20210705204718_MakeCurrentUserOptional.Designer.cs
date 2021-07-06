@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhantomAbyssServer.Database;
 
 namespace PhantomAbyssServer.Migrations
 {
     [DbContext(typeof(PAContext))]
-    partial class PAContextModelSnapshot : ModelSnapshot
+    [Migration("20210705204718_MakeCurrentUserOptional")]
+    partial class MakeCurrentUserOptional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +24,7 @@ namespace PhantomAbyssServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<uint?>("CompletedById")
+                    b.Property<uint>("CompletedById")
                         .HasColumnType("INTEGER");
 
                     b.Property<uint>("NumFloors")
@@ -35,9 +37,6 @@ namespace PhantomAbyssServer.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<uint>("RouteStage")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Seed")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -124,7 +123,7 @@ namespace PhantomAbyssServer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<uint?>("CompletedById")
+                    b.Property<uint>("CompletedById")
                         .HasColumnType("INTEGER");
 
                     b.Property<uint?>("CurrentUserId")
@@ -136,6 +135,8 @@ namespace PhantomAbyssServer.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompletedById");
+
+                    b.HasIndex("CurrentUserId");
 
                     b.ToTable("Routes");
                 });
@@ -190,9 +191,6 @@ namespace PhantomAbyssServer.Migrations
                     b.Property<uint>("CurrencyId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<uint?>("CurrentRouteId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<uint>("HealthId")
                         .HasColumnType("INTEGER");
 
@@ -208,9 +206,6 @@ namespace PhantomAbyssServer.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CurrencyId");
-
-                    b.HasIndex("CurrentRouteId")
-                        .IsUnique();
 
                     b.HasIndex("HealthId")
                         .IsUnique();
@@ -265,7 +260,9 @@ namespace PhantomAbyssServer.Migrations
                 {
                     b.HasOne("PhantomAbyssServer.Database.Models.User", "CompletedBy")
                         .WithMany()
-                        .HasForeignKey("CompletedById");
+                        .HasForeignKey("CompletedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("PhantomAbyssServer.Database.Models.Route", "Route")
                         .WithMany("Dungeons")
@@ -293,9 +290,17 @@ namespace PhantomAbyssServer.Migrations
                 {
                     b.HasOne("PhantomAbyssServer.Database.Models.User", "CompletedBy")
                         .WithMany()
-                        .HasForeignKey("CompletedById");
+                        .HasForeignKey("CompletedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PhantomAbyssServer.Database.Models.User", "CurrentUser")
+                        .WithMany()
+                        .HasForeignKey("CurrentUserId");
 
                     b.Navigation("CompletedBy");
+
+                    b.Navigation("CurrentUser");
                 });
 
             modelBuilder.Entity("PhantomAbyssServer.Database.Models.SavedRun", b =>
@@ -333,10 +338,6 @@ namespace PhantomAbyssServer.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PhantomAbyssServer.Database.Models.Route", "CurrentRoute")
-                        .WithOne("CurrentUser")
-                        .HasForeignKey("PhantomAbyssServer.Database.Models.User", "CurrentRouteId");
-
                     b.HasOne("PhantomAbyssServer.Database.Models.UserHealth", "Health")
                         .WithOne("User")
                         .HasForeignKey("PhantomAbyssServer.Database.Models.User", "HealthId")
@@ -344,8 +345,6 @@ namespace PhantomAbyssServer.Migrations
                         .IsRequired();
 
                     b.Navigation("Currency");
-
-                    b.Navigation("CurrentRoute");
 
                     b.Navigation("Health");
                 });
@@ -357,8 +356,6 @@ namespace PhantomAbyssServer.Migrations
 
             modelBuilder.Entity("PhantomAbyssServer.Database.Models.Route", b =>
                 {
-                    b.Navigation("CurrentUser");
-
                     b.Navigation("Dungeons");
                 });
 

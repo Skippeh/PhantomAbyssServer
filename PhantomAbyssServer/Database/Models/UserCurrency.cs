@@ -10,12 +10,6 @@ namespace PhantomAbyssServer.Database.Models
         [JsonIgnore]
         [Key]
         public uint Id { get; set; }
-        
-        [JsonIgnore]
-        public uint UserId { get; set; }
-
-        [JsonIgnore]
-        public User User { get; set; }
 
         public uint Essence { get; set; }
 

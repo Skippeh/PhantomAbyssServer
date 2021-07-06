@@ -14,6 +14,16 @@ namespace PhantomAbyssServer.Services
             return GenerateString(sharerIdChars, 8);
         }
 
+        public int GetRandomInteger(int minValue = Int32.MinValue, int maxValue = Int32.MaxValue)
+        {
+            return random.Next(minValue, maxValue);
+        }
+
+        public double GetRandomDouble()
+        {
+            return random.NextDouble();
+        }
+
         private string GenerateString(char[] chars, uint length)
         {
             StringBuilder builder = new();

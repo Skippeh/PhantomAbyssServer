@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using PhantomAbyssServer.Database.Models;
 using PhantomAbyssServer.Exceptions;
 using PhantomAbyssServer.Models.Requests;
 using PhantomAbyssServer.Services;
@@ -17,11 +18,13 @@ namespace PhantomAbyssServer.Controllers
     {
         private readonly UserService userService;
         private readonly SavedRunsService savedRunsService;
+        private readonly DungeonService dungeons;
 
-        public SubmitRunController(UserService userService, SavedRunsService savedRunsService)
+        public SubmitRunController(UserService userService, SavedRunsService savedRunsService, DungeonService dungeons)
         {
             this.userService = userService;
             this.savedRunsService = savedRunsService;
+            this.dungeons = dungeons;
         }
         
         [HttpPost]
@@ -32,8 +35,30 @@ namespace PhantomAbyssServer.Controllers
             if (user == null)
                 return NotFound("User not found");
 
-            if (request.DungeonId == 0 || request.RouteId == 0)
-                return BadRequest("Invalid dungeon or route id");
+            Route route = await dungeons.GetRouteById(request.RouteId);
+            Dungeon dungeon = await dungeons.GetDungeonById(request.DungeonId);
+
+            if (route == null)
+                return BadRequest("Route not found");
+
+            if (dungeon == null)
+                return BadRequest("Dungeon not found");
+
+            if (dungeon.RouteId != route.Id)
+                return BadRequest("Route and dungeon are not related");
+
+            if (route.CurrentUser?.Id != user.Id)
+                return BadRequest("The user is not the current runner of this route");
+            
+            if (request.DungeonFloorNumber == 3 && request.Success && !string.IsNullOrEmpty(request.RunData?.Trim()))
+            {
+                await userService.GiveCurrency(user, request.Currency.Essence, request.Currency.DungeonKeys);
+                await dungeons.FinishRoute(user, route, dungeon);
+            }
+            else if (!request.Success)
+            {
+                await userService.ResetUserState(user);
+            }
 
             // Save run data if it exists
             if (!string.IsNullOrEmpty(request.RunData?.Trim()))
@@ -41,7 +66,7 @@ namespace PhantomAbyssServer.Controllers
                 // Should probably verify the data is valid but for now we'll just save it without checking as the server isn't meant to be used publicly
                 try
                 {
-                    await savedRunsService.SaveRunData(user, request.DungeonId, request.RouteId, request.DungeonFloorNumber, request.Success, request.RunData);
+                    await savedRunsService.SaveRunData(user, dungeon.Id, route.Id, request.DungeonFloorNumber, request.Success, request.RunData);
                 }
                 catch (SaveFailedException)
                 {
@@ -52,12 +77,7 @@ namespace PhantomAbyssServer.Controllers
                     return BadRequest(ex.Message);
                 }
             }
-            
-            if (request.DungeonFloorNumber == 3 && request.Success)
-            {
-                await userService.GiveCurrency(user, request.Currency.Essence, request.Currency.DungeonKeys);
-            }
-            
+
             return Ok();
         }
     }

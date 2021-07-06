@@ -17,7 +17,13 @@ namespace PhantomAbyssServer.Database.Models
         public User User { get; set; }
         
         public uint DungeonId { get; set; }
+        
+        [ForeignKey(nameof(DungeonId))]
+        public Dungeon Dungeon { get; set; }
         public uint RouteId { get; set; }
+        
+        [ForeignKey(nameof(RouteId))]
+        public Route Route { get; set; }
         public uint DungeonFloorNumber { get; set; }
         
         [Required]

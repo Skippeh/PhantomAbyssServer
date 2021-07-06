@@ -11,6 +11,7 @@ using PhantomAbyssServer.Models;
 using PhantomAbyssServer.Models.Requests;
 using PhantomAbyssServer.Models.Responses;
 using PhantomAbyssServer.Services;
+using Route = PhantomAbyssServer.Database.Models.Route;
 
 namespace PhantomAbyssServer.Controllers
 {
@@ -22,13 +23,15 @@ namespace PhantomAbyssServer.Controllers
         private readonly SavedRunsService savedRuns;
         private readonly DungeonService dungeons;
         private readonly UserService userService;
+        private readonly RandomGeneratorService randomService;
 
-        public GetDungeonController(MaintenanceService maintenanceService, SavedRunsService savedRuns, DungeonService dungeons, UserService userService)
+        public GetDungeonController(MaintenanceService maintenanceService, SavedRunsService savedRuns, DungeonService dungeons, UserService userService, RandomGeneratorService randomService)
         {
             this.maintenanceService = maintenanceService;
             this.savedRuns = savedRuns;
             this.dungeons = dungeons;
             this.userService = userService;
+            this.randomService = randomService;
         }
         
         [HttpPost]
@@ -38,13 +41,49 @@ namespace PhantomAbyssServer.Controllers
 
             if (user == null)
                 return BadRequest("User not found");
-            
-            // todo: get 'real' ids.
-            uint dungeonId = request.DungeonId > 0 ? request.DungeonId : 1;
-            uint routeId = request.RouteId > 0 ? request.RouteId : 1;
 
-            var ghostRuns = await savedRuns.GetSavedRuns(dungeonId, routeId, request.DungeonFloorNumber);
+            Route route;
+            Dungeon dungeon;
             
+            if (request.RouteId == 0 && request.DungeonId == 0) // Requesting a new route and dungeon
+            {
+                if (user.CurrentRouteId != null)
+                    return BadRequest("The user is already running another route, finish or cancel that one first");
+                
+                route = await dungeons.GetUnfinishedRoute(user) ?? await dungeons.CreateNewRoute();
+                dungeon = route.Dungeons.First(d => d.RouteStage == 0);
+            }
+            else // Requesting a dungeon within an existing route
+            {
+                if (request.RouteId == 0)
+                    return BadRequest("Invalid route id specified");
+                
+                route = await dungeons.GetRouteById(request.RouteId);
+
+                if (route == null)
+                    return BadRequest("Route not found");
+
+                if (user.CurrentRouteId != route.Id)
+                    return BadRequest("The user is not the current runner of this route");
+                
+                if (request.DungeonId == 0) // Requesting new dungeon in current route
+                {
+                    dungeon = route.Dungeons.FirstOrDefault(d => d.RouteStage == request.RouteStage)
+                              ?? await dungeons.AddStageToRoute(route, request.RouteStage);
+                }
+                else // Requesting an existing dungeon (happens when the user progresses to the next floor within a stage)
+                {
+                    dungeon = route.Dungeons.FirstOrDefault(d => d.Id == request.DungeonId);
+
+                    if (dungeon == null)
+                        return BadRequest("Dungeon not found");
+                }
+            }
+            
+            await dungeons.StartRoute(route, user);
+
+            var ghostRuns = await savedRuns.GetSavedRuns(dungeon.Id, route.Id, request.DungeonFloorNumber);
+
             string relicId = null; // null makes the game pick a relic
             uint floorNumber = request.DungeonFloorNumber;
             uint floorType = 0;
@@ -53,7 +92,7 @@ namespace PhantomAbyssServer.Controllers
             string layoutDownloadUrl = null;
             uint version = request.ClientDungeonVersion;
             
-            var layoutData = await dungeons.GetDungeonLayout(dungeonId, floorNumber, version);
+            var layoutData = await dungeons.GetDungeonLayout(dungeon.Id, floorNumber, version);
 
             if (layoutData != null)
             {
@@ -64,7 +103,7 @@ namespace PhantomAbyssServer.Controllers
 
                 layoutDownloadUrl = Url.ActionLink("DownloadLayout", values: new
                 {
-                    dungeonId,
+                    dungeonId = dungeon.Id,
                     floorNumber,
                     version = version
                 });
@@ -77,11 +116,11 @@ namespace PhantomAbyssServer.Controllers
                 dungeonFloorNumber = request.DungeonFloorNumber,
                 dungeonFloorTotalCount = floorCount,
                 dungeonFloorType = floorType,
-                dungeonId = dungeonId,
-                routeId = routeId,
-                routeStage = request.RouteStage,
+                dungeonId = dungeon.Id,
+                routeId = route.Id,
+                routeStage = dungeon.RouteStage,
                 dungeonLayoutType = layoutType,
-                dungeonSeed = 1000,
+                dungeonSeed = dungeon.Seed,
                 dungeonSettingsIndex = request.DungeonSettingsIndex,
                 dungeonVersion = maintenanceService.GetServerVersion(),
                 ghostRuns = ghostRuns.Select(run =>
@@ -106,7 +145,7 @@ namespace PhantomAbyssServer.Controllers
                         UserId = userId,
                         UserName = run.User.Name
                     };
-                }),
+                }).ToList(),
                 health = user.Health,
                 layoutDownloadUrl = layoutDownloadUrl,
                 lockedRoutes = new object[0],

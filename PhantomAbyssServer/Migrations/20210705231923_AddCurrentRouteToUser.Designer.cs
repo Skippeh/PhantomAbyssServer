@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhantomAbyssServer.Database;
 
 namespace PhantomAbyssServer.Migrations
 {
     [DbContext(typeof(PAContext))]
-    partial class PAContextModelSnapshot : ModelSnapshot
+    [Migration("20210705231923_AddCurrentRouteToUser")]
+    partial class AddCurrentRouteToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

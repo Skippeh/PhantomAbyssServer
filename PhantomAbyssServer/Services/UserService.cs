@@ -32,6 +32,7 @@ namespace PhantomAbyssServer.Services
                 .Include(u => u.Health)
                 .Include(u => u.Currency)
                 .ThenInclude(c => c.DungeonKeys)
+                .Include(c => c.CurrentRoute)
                 //.Include(u => u.VictoryRoutes)
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
@@ -42,6 +43,7 @@ namespace PhantomAbyssServer.Services
                 .Include(u => u.Health)
                 .Include(u => u.Currency)
                 .ThenInclude(c => c.DungeonKeys)
+                .Include(c => c.CurrentRoute)
                 //.Include(u => u.VictoryRoutes)
                 .FirstOrDefaultAsync(user => user.SteamId == steamId);
         }
@@ -96,6 +98,13 @@ namespace PhantomAbyssServer.Services
                     dbCurrency.NumKeys += currency.NumKeys;
             }
 
+            await dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>Resets the current route the user is running, if any</summary>
+        public async Task ResetUserState(User user)
+        {
+            user.CurrentRoute = null;
             await dbContext.SaveChangesAsync();
         }
 

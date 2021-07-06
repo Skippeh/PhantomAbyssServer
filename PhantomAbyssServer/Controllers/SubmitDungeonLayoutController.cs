@@ -23,6 +23,9 @@ namespace PhantomAbyssServer.Controllers
         [HttpPost]
         public async Task<IActionResult> Index([FromBody] SubmitDungeonLayoutRequest request)
         {
+            if (await dungeonService.GetDungeonById(request.DungeonId) == null)
+                return BadRequest("Dungeon not found");
+
             try
             {
                 await dungeonService.SaveDungeonLayout(
@@ -41,7 +44,7 @@ namespace PhantomAbyssServer.Controllers
             {
                 return StatusCode((int) HttpStatusCode.InternalServerError, "Could not save layout data");
             }
-            catch (DataExistsAlready ex)
+            catch (DataExistsAlready)
             {
                 return Ok("OK");
             }

@@ -32,6 +32,13 @@ namespace PhantomAbyssServer.Database.Models
         [ForeignKey(nameof(HealthId))]
         public UserHealth Health { get; set; }
         
+        [JsonIgnore]
+        public uint? CurrentRouteId { get; set; }
+        
+        [JsonIgnore]
+        [ForeignKey(nameof(CurrentRouteId))]
+        public Route CurrentRoute { get; set; }
+        
         // todo: create model for routes and dungeons
         [NotMapped]
         public List<object> VictoryRoutes { get; set; } = new();
