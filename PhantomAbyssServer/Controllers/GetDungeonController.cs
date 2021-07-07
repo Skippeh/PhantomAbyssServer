@@ -49,8 +49,8 @@ namespace PhantomAbyssServer.Controllers
             {
                 if (user.CurrentRouteId != null)
                     return BadRequest("The user is already running another route, finish or cancel that one first");
-                
-                route = await dungeons.GetUnfinishedRoute(user) ?? await dungeons.CreateNewRoute();
+
+                route = randomService.GetRandomDouble() > 0.5 ? await dungeons.GetUnfinishedRoute(user) ?? await dungeons.CreateNewRoute() : await dungeons.CreateNewRoute();
                 dungeon = route.Dungeons.First(d => d.RouteStage == 0);
             }
             else // Requesting a dungeon within an existing route
