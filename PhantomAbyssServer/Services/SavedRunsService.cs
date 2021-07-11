@@ -31,28 +31,35 @@ namespace PhantomAbyssServer.Services
         
         /// <exception cref="DataExistsAlready">Thrown if there is already an existing run with identical run data.</exception>
         /// <exception cref="SaveFailedException">Thrown if saving the run data to disk fails.</exception>
+        /// <exception cref="ArgumentException">Thrown if runData is null and runSuccessful is true at the same time</exception>
         public async Task SaveRunData(User runner, uint dungeonId, uint routeId, uint dungeonFloorNumber, bool runSuccessful, string runData)
         {
-            string hash = GetRunDataHash(runData);
+            string hash = runData != null ? GetRunDataHash(runData) : null;
 
-            if ((await GetSavedRunFromHash(hash)) != null)
-            {
-                throw new DataExistsAlready("There is already a run submitted with identical run data");
-            }
-            
-            var directoryPath = GetDirectoryPath(dungeonId, routeId, dungeonFloorNumber);
-            Directory.CreateDirectory(directoryPath);
+            if (runData == null && runSuccessful)
+                throw new ArgumentException("runData is null and runSuccessful is true, this is not a valid combination");
 
-            string filePath = Path.Combine(directoryPath, hash);
+            if (runData != null)
+            {
+                if ((await GetSavedRunFromHash(hash)) != null)
+                {
+                    throw new DataExistsAlready("There is already a run submitted with identical run data");
+                }
 
-            try
-            {
-                await File.WriteAllTextAsync(filePath, runData, Encoding.ASCII);
-            }
-            catch (IOException ex)
-            {
-                logger.LogCritical("Could not save run data to disk: {ExceptionMessage}", ex.Message);
-                throw new SaveFailedException("Could not save run data to disk", ex);
+                var directoryPath = GetDirectoryPath(dungeonId, routeId, dungeonFloorNumber);
+                Directory.CreateDirectory(directoryPath);
+
+                string filePath = Path.Combine(directoryPath, hash);
+
+                try
+                {
+                    await File.WriteAllTextAsync(filePath, runData, Encoding.ASCII);
+                }
+                catch (IOException ex)
+                {
+                    logger.LogCritical("Could not save run data to disk: {ExceptionMessage}", ex.Message);
+                    throw new SaveFailedException("Could not save run data to disk", ex);
+                }
             }
 
             SavedRun savedRun = new()
@@ -63,7 +70,8 @@ namespace PhantomAbyssServer.Services
                 RouteId = routeId,
                 DungeonFloorNumber = dungeonFloorNumber,
                 RunSuccessful = runSuccessful,
-                ServerVersion = maintenanceService.GetServerVersion()
+                ServerVersion = maintenanceService.GetServerVersion(),
+                RunDateTime = DateTime.UtcNow
             };
 
             dbContext.SavedRuns.Add(savedRun);
@@ -102,6 +110,7 @@ namespace PhantomAbyssServer.Services
             return await dbContext.SavedRuns
                 .Include(e => e.User)
                 .Where(run =>
+                    run.DataHash != null &&
                     run.ServerVersion == version &&
                     run.DungeonId == dungeonId &&
                     run.RouteId == routeId &&

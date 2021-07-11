@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -26,11 +27,12 @@ namespace PhantomAbyssServer.Database.Models
         public Route Route { get; set; }
         public uint DungeonFloorNumber { get; set; }
         
-        [Required]
         public string DataHash { get; set; }
 
         public bool RunSuccessful { get; set; }
         
         public int ServerVersion { get; set; }
+        
+        public DateTime RunDateTime { get; set; }
     }
 }

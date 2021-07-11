@@ -62,22 +62,18 @@ namespace PhantomAbyssServer.Controllers
                 await userService.ResetUserState(user);
             }
 
-            // Save run data if it exists
-            if (!string.IsNullOrEmpty(request.RunData?.Trim()))
+            // Should probably verify the data is valid but for now we'll just save it without checking as the server isn't meant to be used publicly
+            try
             {
-                // Should probably verify the data is valid but for now we'll just save it without checking as the server isn't meant to be used publicly
-                try
-                {
-                    await savedRunsService.SaveRunData(user, dungeon.Id, route.Id, request.DungeonFloorNumber, request.Success, request.RunData);
-                }
-                catch (SaveFailedException)
-                {
-                    return StatusCode((int) HttpStatusCode.InternalServerError, "Could not save run data");
-                }
-                catch (DataExistsAlready ex)
-                {
-                    return BadRequest(ex.Message);
-                }
+                await savedRunsService.SaveRunData(user, dungeon.Id, route.Id, request.DungeonFloorNumber, request.Success, request.RunData);
+            }
+            catch (SaveFailedException)
+            {
+                return StatusCode((int) HttpStatusCode.InternalServerError, "Could not save run data");
+            }
+            catch (DataExistsAlready ex)
+            {
+                return BadRequest(ex.Message);
             }
 
             return Ok(new
