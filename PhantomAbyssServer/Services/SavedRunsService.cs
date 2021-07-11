@@ -104,13 +104,13 @@ namespace PhantomAbyssServer.Services
             return directoryPath;
         }
 
-        public async Task<ICollection<SavedRun>> GetSavedRuns(uint dungeonId, uint routeId, uint dungeonFloorNumber)
+        public async Task<ICollection<SavedRun>> GetSavedRuns(uint dungeonId, uint routeId, uint dungeonFloorNumber, bool withRunDataOnly)
         {
             int version = maintenanceService.GetServerVersion();
             return await dbContext.SavedRuns
                 .Include(e => e.User)
                 .Where(run =>
-                    run.DataHash != null &&
+                    (!withRunDataOnly || run.DataHash != null) &&
                     run.ServerVersion == version &&
                     run.DungeonId == dungeonId &&
                     run.RouteId == routeId &&

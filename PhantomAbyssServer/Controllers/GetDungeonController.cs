@@ -82,7 +82,7 @@ namespace PhantomAbyssServer.Controllers
             
             await dungeons.StartRoute(route, user);
 
-            var ghostRuns = await savedRuns.GetSavedRuns(dungeon.Id, route.Id, request.DungeonFloorNumber);
+            var ghostRuns = await savedRuns.GetSavedRuns(dungeon.Id, route.Id, request.DungeonFloorNumber, withRunDataOnly: true);
 
             string relicId = null; // null makes the game pick a relic
             uint floorNumber = request.DungeonFloorNumber;
