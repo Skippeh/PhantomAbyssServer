@@ -19,12 +19,14 @@ namespace PhantomAbyssServer.Controllers
         private readonly UserService userService;
         private readonly SavedRunsService savedRunsService;
         private readonly DungeonService dungeons;
+        private readonly MaintenanceService maintenanceService;
 
-        public SubmitRunController(UserService userService, SavedRunsService savedRunsService, DungeonService dungeons)
+        public SubmitRunController(UserService userService, SavedRunsService savedRunsService, DungeonService dungeons, MaintenanceService maintenanceService)
         {
             this.userService = userService;
             this.savedRunsService = savedRunsService;
             this.dungeons = dungeons;
+            this.maintenanceService = maintenanceService;
         }
         
         [HttpPost]
@@ -78,7 +80,18 @@ namespace PhantomAbyssServer.Controllers
                 }
             }
 
-            return Ok();
+            return Ok(new
+            {
+                currency = user.Currency,
+                dungeonFloorNumber = request.DungeonFloorNumber,
+                dungeonId = dungeon.Id,
+                routeId = route.Id,
+                success = request.Success,
+                userId = user.Id,
+                health = user.Health,
+                lockedCurrencyAndCompletedRoutes = new object[0],
+                maintenanceInfo = maintenanceService.GetMaintenanceInfo()
+            });
         }
     }
 }
